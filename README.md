@@ -9,11 +9,6 @@ We implemented three different semantic segmentation models:
 - A U-Net architecture enhanced with an attention mechanism,
 - The DeepLabv3+ architecture [[3]](#references).
 
-To improve segmentation accuracy and mitigate class imbalance, we used a composite loss function combining Dice and Jaccard losses. After training with suitable data augmentations, the achieved **mean Intersection over Union (mIoU)** scores were:
-- **FCN:** 34.14%
-- **U-Net with Attention:** 45.72%
-- **DeepLabv3+:** 38.13%
-
 ---
 
 ## Dataset and Preprocessing
