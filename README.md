@@ -249,12 +249,12 @@ The final combined loss can be formulated as:  $\[\text{Combined Loss} = \alpha 
 **Note**: you can also find the code in [kaggle](https://www.kaggle.com/code/likhon148/semantic-segmentation-pytorch-scratch)
 
 # Team Members
-Mehul Dinesh Jain
-Meryem Hanyn
-Nurettin Berke Çevik
-Bora Özdamar
-Daniel Alexander Meija Romero
-Ghazaleh Alizadehbirjandi
+- Mehul Dinesh Jain
+- Meryem Hanyn
+- Nurettin Berke Çevik
+- Bora Özdamar
+- Daniel Alexander Meija Romero
+- Ghazaleh Alizadehbirjandi
 
 ## References
 1. https://arxiv.org/pdf/1411.4038
