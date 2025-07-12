@@ -246,62 +246,8 @@ The combined loss function is comprised of dice loss and Jaccard loss used to ha
 
 The final combined loss can be formulated as:  $\[\text{Combined Loss} = \alpha \cdot \text{Dice Loss} + \beta \cdot \text{Jaccard Loss}\]$
 
-# Experiments and Results
-
-**Training Settings**
-
-  - Epochs: The training was conducted for up to 100 epochs with early stopping criteria applied.
-  - Batch Size: A batch size of 8 was used.
-
-**Callbacks** 
-
-  - Learning Rate Scheduling and Early Stopping: Optimizers were configured to use learning rate scheduling (ReduceLROnPlateau) and early stopping mechanisms.
-
-**Accuracy and Loss Curves**:
-
-
-  - **Loss and accuracy curve for Fully Convolutional Network**
-  
-![loss-acc-fcn](/output_images/loss-acc-fcn.png)
-
- - **loss and accuracy curve for u-net**
-
-![loss-curve](/output_images/loss-acc-unet.png)
-
- - **Loss and accuracy curves for deeplabv3+**
- 
-![loss-acc-curve-deeplab](/output_images/loss-acc-deeplab.png)
-
-**Results:** 
-
-| Model                        | mIoU   |
-|------------------------------|--------|
-| Fully Convolutional Network  | 34.14% |
-| U-Net with Attention         | 45.72% |
-| DeepLabV3+                   | 38.13% |
-
-
-**output-diagram**
-
-- **a prediction on the test set for fcn**
-
-![output-fcn](/output_images/output-fcn.png)
-
-- **a prediction on the test set for u-net**
-
-![output-fcn](/output_images/output-unet.png)
-
-- **a prediction on the test set for deeplabv3+**
-
-![output-fcn](/output_images/output-deeplab.png)
-
-
-# Future works
-
-with these setups, I didn't get a good average Intersection over Union (IoU) score from any of these three models. Although deeplabv3+ should result in more than 80%, here I got only 38.13%.
-I will explore more especially with deeplabv3+ to get a score as it is mentioned in [3]( https://arxiv.org/pdf/1802.02611). Moreover, I will apply post-processing such as Conditional Random Fields (CRF), Morphological Operations (e.g., dilation, erosion), etc. Moreover, I will experiment with different hyperparameters when I get available resources (GPU).
-
 **Note**: you can also find the code in [kaggle](https://www.kaggle.com/code/likhon148/semantic-segmentation-pytorch-scratch)
+
 ## References
 1. https://arxiv.org/pdf/1411.4038
 2. https://github.com/khalequzzamanlikhon/DeepLearning-ComputerVision/blob/master/08-Segmentation-Detection/01-Semantic-Segmentation.ipynb
