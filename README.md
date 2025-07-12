@@ -246,8 +246,6 @@ The combined loss function is comprised of dice loss and Jaccard loss used to ha
 
 The final combined loss can be formulated as:  $\[\text{Combined Loss} = \alpha \cdot \text{Dice Loss} + \beta \cdot \text{Jaccard Loss}\]$
 
-**Note**: you can also find the code in [kaggle](https://www.kaggle.com/code/likhon148/semantic-segmentation-pytorch-scratch)
-
 # Team Members
 - Mehul Dinesh Jain
 - Meryem Hanyn
