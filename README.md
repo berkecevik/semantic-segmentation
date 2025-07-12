@@ -1,261 +1,113 @@
-# Introduction
-Semantic segmentation is one of the most important tasks in computer vision. For this project, I worked with the CamVid dataset for semantic segmentation. I step into this project inspired by [1]( https://arxiv.org/pdf/1411.4038) and what I read in this [2](https://github.com/khalequzzamanlikhon/DeepLearning-ComputerVision/blob/master/08-Segmentation-Detection/01-Semantic-Segmentation.ipynb) course. I applied knowledge of Fully Convolutional Networks from both references, keeping resnet50 as the backbone model followed by the custom decoder. Further, I also explored two more models
-and compared all of these three models. The other two models are- U-net architecture with attention mechanism and deeplabv3+ architecture explored in [3](https://arxiv.org/pdf/1802.02611). For the loss function, I considered the combined loss function which used both dice and Jaccard loss. Applying suitable data augmentation techniques I got mIoU from the abovementioned architectures are 34.14%, 45.72%, and 38.13% respectively.
+# Semantic Segmentation with CamVid Dataset
 
+## Introduction
 
-# Dataset and Preprocessing 
+Semantic segmentation is a core task in computer vision, involving the classification of each pixel in an image into predefined categories. In this project, we tackled semantic segmentation using the CamVid dataset, inspired by the foundational work of Long et al. [[1]](#references) and educational materials from Khalequzzaman Likhon’s course [[2]](#references).
 
-I used The Cambridge-driving Labeled Video Database (CamVid) dataset for this task which has 32 classes. The dataset comprises 6 folders three of which train,val, and test images, and the others are labels 
-associated with these image folders. Moreover, there is also a CSV file that holds the color channel values associated with the classes. I used it to convert images from RGB to classes and vice versa. I applied
-different data augmentation techniques which are listed below.
+We implemented three different semantic segmentation models:
+- A Fully Convolutional Network (FCN) with a ResNet-50 backbone and custom decoder,
+- A U-Net architecture enhanced with an attention mechanism,
+- The DeepLabv3+ architecture [[3]](#references).
 
-  - **Training Data Transformations:**
-    
-     - Resize(400, 520): Resize the input images to a larger size.
-     - RandomCrop(352, 480): Crops a random region of the image to the target size.
-     - HorizontalFlip: Flips the image horizontally with a probability of 0.5.
-     - Rotate: Rotates the image randomly within a range of ±15 degrees.
-     - GaussianBlur: Applies Gaussian blur with a limit of (3, 5) for a probability of 0.3.
-     - ColorJitter: Adjusts brightness, contrast, saturation, and hue.
-     - Normalize: Normalize the pixel values using the mean (0.390, 0.405, 0.414) and standard deviation (0.274, 0.285, 0.297).
-     - ToTensorV2: Converts the image into a PyTorch tensor.
+To improve segmentation accuracy and mitigate class imbalance, we used a composite loss function combining Dice and Jaccard losses. After training with suitable data augmentations, the achieved **mean Intersection over Union (mIoU)** scores were:
+- **FCN:** 34.14%
+- **U-Net with Attention:** 45.72%
+- **DeepLabv3+:** 38.13%
 
+---
 
- - **Validation and Test Data Transformations:**
-     - Resize(352, 480): Resize the images to the target size.
-     - Normalize Same normalization as the training data.
-     - ToTensorV2: Converts the image to a tensor.
+## Dataset and Preprocessing
 
+We used the **CamVid (Cambridge-driving Labeled Video Database)** dataset, which includes images annotated for 32 semantic classes. The dataset contains:
 
-# Model Architecture:
+- `train/`, `val/`, `test/` image folders
+- Corresponding label folders
+- A CSV file mapping class names to RGB values
 
-I have used three different architectures. FCN, U-net, and deeplabv3+
+We used this CSV to convert between RGB and class masks. The following data transformations were applied:
 
-- **Fully Convolutional Network**:
+### Training Data Augmentation
+- `Resize(400, 520)`
+- `RandomCrop(352, 480)`
+- `HorizontalFlip` (p=0.5)
+- `Rotate` (±15°)
+- `GaussianBlur` (kernel size 3–5, p=0.3)
+- `ColorJitter`
+- `Normalize(mean=(0.390, 0.405, 0.414), std=(0.274, 0.285, 0.297))`
+- `ToTensorV2`
 
-                                                    
-                                                         Input (352, 480, 3)
-                                                               |
-                                                               V
-                                             +-----------------------------------+
-                                             |                                   |
-                                             |          ResNet-50 Encoder        |
-                                             |         (Pretrained Backbone)     |
-                                             +-----------------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |   Encoder Output (7x7x2048)  |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      ConvTranspose Layer     |
-                                                 |       (2048 -> 1024)         |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |        BatchNorm + ReLU      |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      ConvTranspose Layer     |
-                                                 |       (1024 -> 512)          |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |        BatchNorm + ReLU      |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      ConvTranspose Layer     |
-                                                 |       (512 -> 256)           |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |        BatchNorm + ReLU      |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      ConvTranspose Layer     |
-                                                 |       (256 -> 128)           |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |        BatchNorm + ReLU      |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      ConvTranspose Layer     |
-                                                 |   (128 -> num_classes=32)    |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |   Upsample to (352, 480)     |
-                                                 |  (Bilinear Interpolation)    |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                  Output (352, 480, 32 Classes)
+### Validation & Test Transformations
+- `Resize(352, 480)`
+- `Normalize` (same as above)
+- `ToTensorV2`
 
-    
+---
 
+## Model Architectures
 
- - **U-net with an attention mechanism**
+### 1. Fully Convolutional Network (FCN)
+- **Encoder:** ResNet-50 (pretrained)
+- **Decoder:** Multiple ConvTranspose layers with BatchNorm and ReLU
+- **Final Output:** Upsampled to (352, 480), with 32 class channels
 
-                                                            Input (352, 480, 3)
-                                                               |
-                                                               V
-                                             +-----------------------------------+
-                                             |                                   |
-                                             |       ResNet-50 Encoder Layers    |
-                                             |     (Pretrained Feature Extractor)|
-                                             +-----------------------------------+
-                                                   |       |       |      |
-                                                 e1        e2      e3     e4
-                                               (64)       (256)   (512)  (1024)
-                                                               |
-                                                               V
-                                              +-----------------------------------+
-                                              |   ResNet-50 Encoder Block (e5)    |
-                                              |         (2048 channels)           |
-                                              +-----------------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |    Attention Block (2048)    |
-                                                 |         + Decoder Block      |
-                                                 |    (2048 + 1024 -> 1024)     |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |    Attention Block (1024)    |
-                                                 |         + Decoder Block      |
-                                                 |     (1024 + 512 -> 512)      |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |    Attention Block (512)     |
-                                                 |         + Decoder Block      |
-                                                 |     (512 + 256 -> 256)       |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |    Attention Block (256)     |
-                                                 |         + Decoder Block      |
-                                                 |      (256 + 64 -> 64)        |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |       Final Conv Layer       |
-                                                 |   (64 -> num_classes=32)     |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |   Upsample to (352, 480)     |
-                                                 |  (Bilinear Interpolation)    |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                  Output (352, 480, 32 Classes)
+### 2. U-Net with Attention Mechanism
+- **Encoder:** ResNet-50 (pretrained), with feature maps e1–e5
+- **Decoder:** Attention gates + decoder blocks at each scale
+- **Final Output:** Upsampled to (352, 480), 32 class channels
 
+### 3. DeepLabv3+
+- **Encoder:** ResNet-50 (pretrained)
+- **ASPP Module:** Multi-scale context with atrous convolutions
+- **Decoder:** Combines low-level features with ASPP output
+- **Final Output:** Upsampled to (352, 480), 32 class channels
 
-- **Deeplabv3+**
+---
 
-                                                     Input (352, 480, 3)
-                                                               |
-                                                               V
-                                             +-----------------------------------+
-                                             |                                   |
-                                             |      ResNet-50 Encoder Backbone   |
-                                             |    (Pretrained Feature Extractor) |
-                                             +-----------------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      Atrous Spatial Pyramid  |
-                                                 |        Pooling (ASPP)        |
-                                                 |   (With Multiple Dilation    |
-                                                 |     Rates for Context)       |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |    Upsample + Concatenation  |
-                                                 |     with Low-Level Features  |
-                                                 |    (Low-Level + ASPP Output) |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |   3x3 Conv Layer + BatchNorm |
-                                                 |     + ReLU Activation        |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |      Conv Layer (256 ->      |
-                                                 |  num_classes=32)             |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                 +-----------------------------+
-                                                 |   Upsample to (352, 480)     |
-                                                 |  (Bilinear Interpolation)    |
-                                                 +-----------------------------+
-                                                               |
-                                                               V
-                                                  Output (352, 480, 32 Classes)
+## Training Setup
 
-                                                       
-# Training Setup
+### Hyperparameters
+- **Optimizer:** Adam
+- **Learning Rate:** 1e-4
+- **Weight Decay:** 
+  - FCN: 1e-4
+  - U-Net & DeepLabv3+: 1e-5
+- **Batch Size:** 4 (due to GPU memory limits)
+- **LR Scheduler:** `ReduceLROnPlateau` (factor=0.1, patience=3)
+- **Early Stopping:** Patience = 7 epochs, min delta = 0.001
 
-**4.1 Hyperparameters**
+### Loss Function
 
-  - Optimizers: Adam optimizer is used for all three models, with a learning rate of 1e-4 and weight decay:
-  - weight_decay=1e-4 for FCN
-  -  batch_size=4; Used this small batch size due to lack of GPU
-  - weight_decay=1e-5 for UNet and DeepLabV3+
-  - Learning Rate Scheduler: ReduceLROnPlateau reduces the learning rate by a factor of 0.1 if no improvement is seen for 3 epochs.
-  - Early Stopping: Patience of 7 epochs with a delta threshold of 0.001.
-  - 
-**4.2 Loss Function**
-The combined loss function is comprised of dice loss and Jaccard loss used to handle any class imbalance. I used weight .7 and .3 for dice loss and Jaccard loss respectively.
+A weighted combination of Dice Loss and Jaccard Loss:
 
- - **Dice Loss:** Measures the overlap between the predicted and ground truth masks. It helps the model focus on the regions of interest and is effective for class imbalance. The equation for dice loss is:
+\[
+\text{Dice Loss} = 1 - \frac{2 \sum p_i g_i + \epsilon}{\sum p_i + \sum g_i + \epsilon}
+\]
 
-   $\[\text{Dice Loss} = 1 - \frac{2 \sum_{i=1}^{N} p_i g_i + \epsilon}{\sum_{i=1}^{N} p_i + \sum_{i=1}^{N} g_i + \epsilon}\]$
+\[
+\text{Jaccard Loss} = 1 - \frac{\sum p_i g_i + \epsilon}{\sum p_i + \sum g_i - \sum p_i g_i + \epsilon}
+\]
 
-  - **Jaccard Loss (IoU):** Similar to Dice loss but uses the intersection-over-union measure. This loss is beneficial for ensuring high accuracy in boundary regions. The equation is:
-    
-      $\[\text{Jaccard Loss} = 1 - \frac{\sum_{i=1}^{N} p_i g_i + \epsilon}{\sum_{i=1}^{N} p_i + \sum_{i=1}^{N} g_i - \sum_{i=1}^{N} p_i g_i + \epsilon}\]$
+\[
+\text{Combined Loss} = 0.7 \cdot \text{Dice Loss} + 0.3 \cdot \text{Jaccard Loss}
+\]
 
-The final combined loss can be formulated as:  $\[\text{Combined Loss} = \alpha \cdot \text{Dice Loss} + \beta \cdot \text{Jaccard Loss}\]$
+---
 
-# Team Members
-- Mehul Dinesh Jain
-- Meryem Hanyn
-- Nurettin Berke Çevik
-- Bora Özdamar
-- Daniel Alexander Meija Romero
+## Team Members
+
+- Mehul Dinesh Jain  
+- Meryem Hanyn  
+- Nurettin Berke Çevik  
+- Bora Özdamar  
+- Daniel Alexander Meija Romero  
 - Ghazaleh Alizadehbirjandi
 
+---
+
 ## References
-1. https://arxiv.org/pdf/1411.4038
-2. https://github.com/khalequzzamanlikhon/DeepLearning-ComputerVision/blob/master/08-Segmentation-Detection/01-Semantic-Segmentation.ipynb
-3. https://arxiv.org/pdf/1802.02611
-4. https://www.kaggle.com/code/likhon148/semantic-segmentation-pytorch-scratch
+
+1. Long, J., Shelhamer, E., & Darrell, T. (2015). [Fully Convolutional Networks for Semantic Segmentation](https://arxiv.org/pdf/1411.4038)  
+2. [Semantic Segmentation in PyTorch – GitHub Notebook](https://github.com/khalequzzamanlikhon/DeepLearning-ComputerVision/blob/master/08-Segmentation-Detection/01-Semantic-Segmentation.ipynb)  
+3. Chen, L. C., Zhu, Y., Papandreou, G., Schroff, F., & Adam, H. (2018). [Encoder-Decoder with Atrous Separable Convolution for Semantic Image Segmentation (DeepLabv3+)](https://arxiv.org/pdf/1802.02611)  
+4. [Kaggle Notebook – Semantic Segmentation PyTorch from Scratch](https://www.kaggle.com/code/likhon148/semantic-segmentation-pytorch-scratch)
+
